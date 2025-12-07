@@ -1,4 +1,7 @@
-const dom = {
+// 检查是否在浏览器环境中
+const isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
+
+const dom = isBrowser ? {
     container: document.getElementById("mainContainer"),
     backgroundStage: document.getElementById("backgroundStage"),
     backgroundBaseLayer: document.getElementById("backgroundBaseLayer"),
@@ -77,16 +80,21 @@ const dom = {
     importFavoritesInput: document.getElementById("importFavoritesInput"),
     clearFavoritesBtn: document.getElementById("clearFavoritesBtn"),
     currentFavoriteToggle: document.getElementById("currentFavoriteToggle"),
-};
+} : {};
 
-window.SolaraDom = dom;
+// 只在浏览器环境中设置全局变量
+if (isBrowser) {
+    window.SolaraDom = dom;
+}
 
-const isMobileView = Boolean(window.__SOLARA_IS_MOBILE);
+const isMobileView = isBrowser ? Boolean(window.__SOLARA_IS_MOBILE) : false;
 
-const mobileBridge = window.SolaraMobileBridge || {};
+const mobileBridge = isBrowser ? (window.SolaraMobileBridge || {}) : {};
 mobileBridge.handlers = mobileBridge.handlers || {};
 mobileBridge.queue = Array.isArray(mobileBridge.queue) ? mobileBridge.queue : [];
-window.SolaraMobileBridge = mobileBridge;
+if (isBrowser) {
+    window.SolaraMobileBridge = mobileBridge;
+}
 
 function invokeMobileHook(name, ...args) {
     if (!isMobileView) {
@@ -484,6 +492,7 @@ function removePersistentItems(keys = []) {
 }
 
 function safeGetLocalStorage(key) {
+    if (!isBrowser) return null;
     try {
         return localStorage.getItem(key);
     } catch (error) {
@@ -493,6 +502,7 @@ function safeGetLocalStorage(key) {
 }
 
 function safeSetLocalStorage(key, value, options = {}) {
+    if (!isBrowser) return;
     const { skipRemote = false } = options;
     try {
         localStorage.setItem(key, value);
@@ -505,6 +515,7 @@ function safeSetLocalStorage(key, value, options = {}) {
 }
 
 function safeRemoveLocalStorage(key, options = {}) {
+    if (!isBrowser) return;
     const { skipRemote = false } = options;
     try {
         localStorage.removeItem(key);
@@ -5883,6 +5894,7 @@ function scrollToCurrentLyric(element, containerOverride) {
 
 // 修复：下载歌曲
 async function downloadSong(song, quality = "320") {
+    if (!isBrowser) return;
     try {
         showNotification("正在准备下载...");
 
@@ -5963,6 +5975,7 @@ function switchMobileView(view) {
 
 // 修复：显示通知
 function showNotification(message, type = "success") {
+    if (!isBrowser || !dom.notification) return;
     const notification = dom.notification;
     notification.textContent = message;
     notification.className = `notification ${type}`;
